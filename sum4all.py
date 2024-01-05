@@ -273,10 +273,12 @@ class sum4all(Plugin):
                     del self.params_cache[user_id]['last_url']
 
                 logger.info('Updated last_image_base64 in params_cache for user.')
-                if self.image_service == "xunfei":
+                if self.image_sum_service == "xunfei":
                     self.handle_xunfei_image(base64_image, e_context)
-                else:
+                elif self.image_sum_service == "openai":
                     self.handle_openai_image(base64_image, e_context)
+                elif self.image_sum_service == "gemini":
+                    self.handle_gemini_image(base64_image, e_context)
             else:
                 logger.info("图片总结功能已禁用，不对图片内容进行处理")
             # 删除文件
