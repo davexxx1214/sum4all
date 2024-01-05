@@ -2,6 +2,7 @@
 [telegram频道 ](https://t.me/+w2Z8S0Y8H2IxZDI9)
 
 ## 更新日志
+- V0.6.2，20231216，链接、搜索总结支持Google最新的Gemini模型，目前免费
 - V0.6.1，20231215，修复搜索bug
 - V0.6.1，20231214，企业微信ntwork模式，支持链接卡片、文件、图片，注意需更新chatgpt-on-wechat到最新版
 - V0.6.0，20231210，支持文件、链接多轮对话，OpenAI支持搜索模式
@@ -69,7 +70,7 @@
 
 各参数含义如下：
 ```
-"sum_service":"", #内容总结服务，openai、sum4all、bibigpt、opensum
+"sum_service":"", #内容总结服务，openai、sum4all、gemini、bibigpt、opensum
 "search_sum":"", #搜索开关，默认不开启，开启需改为 true，在微信端使用时，需要以“搜”字开头才会触发
 "file_sum": false, #文件总结开关，默认不开启，开启需改为 true，目前支持sum_service为openai和sum4all
 "image_sum": false, #图片总结开关，默认不开启，开启需改为 true，目前支持sum_service为openai和xunfei
@@ -79,6 +80,7 @@
 "qa_prefix":"问", #追问提示词，以该词开头，才能触发追问
 "search_prefix":"搜", #搜索提示词，以该词开头，才能触发搜索
 "sum4all_key":"", #如选sum4all，则必填
+"gemini_key": "", #如选gemini，则必填
 "xunfei_app_id": "", #讯飞大模型appid，如图片总结服务选择xunfei，则必填
 "xunfei_api_key": "", #讯飞大模型apikey，如图片总结服务选择xunfei，则必填
 "xunfei_api_secret": "" #讯飞大模型apisecret，如图片总结服务选择xunfei，则必填

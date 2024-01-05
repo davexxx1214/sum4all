@@ -9,7 +9,6 @@ from plugins import *
 from common.log import logger
 from common.expired_dict import ExpiredDict
 import os
-import threading
 from docx import Document
 import markdown
 import tiktoken
@@ -53,7 +52,7 @@ text =[{"role": "user", "content": "", "content_type":"image"}]
     name="sum4all",
     desire_priority=2,
     desc="A plugin for summarizing all things",
-    version="0.6.2",
+    version="0.6.5",
     author="fatwang2",
 )
 
@@ -78,6 +77,7 @@ class sum4all(Plugin):
             self.handlers[Event.ON_HANDLE_CONTEXT] = self.on_handle_context
             # 从配置中提取所需的设置
             self.sum_service = self.config.get("sum_service","")
+            self.gemini_key = self.config.get("gemini_key","")
             self.bibigpt_key = self.config.get("bibigpt_key","")
             self.outputLanguage = self.config.get("outputLanguage","zh-CN")
             self.group_sharing = self.config.get("group_sharing","true")
@@ -161,8 +161,10 @@ class sum4all(Plugin):
                     logger.info('Last image path found in params_cache for user.')            
                     if self.image_service == "xunfei":
                         self.handle_xunfei_image(self.params_cache[user_id]['last_image_base64'], e_context)
-                    else:
+                    elif self.image_service == "openai":
                         self.handle_openai_image(self.params_cache[user_id]['last_image_base64'], e_context)
+                    elif self.image_service == "gemini":
+                        self.handle_gemini_image(self.params_cache[user_id]['last_image_base64'], e_context)
                 # 如果存在最近一次处理的URL，触发URL理解函数
                 elif 'last_url' in self.params_cache[user_id]:
                     logger.info('Last URL found in params_cache for user.')            
@@ -342,14 +344,14 @@ class sum4all(Plugin):
                 return
     def call_service(self, content, e_context, service_type):
         if service_type == "search":
-            if self.search_service == "openai" or self.search_service == "sum4all":
+            if self.search_service == "openai" or self.search_service == "sum4all" or self.search_service == "gemini":
                 self.handle_search(content, e_context)
             elif self.search_service == "perplexity":
                 self.handle_perplexity(content, e_context)
         elif service_type == "sum":
             if self.sum_service == "bibigpt":
                 self.handle_bibigpt(content, e_context)
-            elif self.sum_service == "openai" or self.sum_service == "sum4all":
+            if self.search_service == "openai" or self.search_service == "sum4all" or self.search_service == "gemini":
                 self.handle_url(content, e_context)
             elif self.sum_service == "opensum":
                 self.handle_opensum(content, e_context)
@@ -381,6 +383,10 @@ class sum4all(Plugin):
             api_key = self.sum4all_key
             api_base = "https://pro.sum4all.site/v1"
             model = "sum4all"
+        elif self.sum_service == "gemini":
+            api_key = self.gemini_key
+            model = "gemini"
+            api_base = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key="
         else:
             logger.error(f"未知的sum_service配置: {self.sum_service}")
             return
@@ -429,7 +435,7 @@ class sum4all(Plugin):
 
         reply = Reply()
         reply.type = ReplyType.TEXT
-        reply.content = f"{reply_content}\n\n💬5min内输入“{self.qa_prefix}+具体问题”，可继续追问"             
+        reply.content = f"{remove_markdown(reply_content)}\n\n💬5min内输入{self.qa_prefix}+问题，可继续追问"             
         e_context["reply"] = reply
         e_context.action = EventAction.BREAK_PASS
     def handle_bibigpt(self, content, e_context):    
@@ -613,6 +619,10 @@ class sum4all(Plugin):
             api_key = self.sum4all_key
             api_base = "https://pro.sum4all.site/v1"
             model = "sum4all"
+        elif self.sum_service == "gemini":
+            api_key = self.gemini_key
+            model = "gemini"
+            api_base = "https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent"
         else:
             logger.error(f"未知的sum_service配置: {self.sum_service}")
             return
@@ -620,35 +630,68 @@ class sum4all(Plugin):
         user_id = msg.from_user_id
         user_params = self.params_cache.get(user_id, {})
         prompt = user_params.get('prompt', self.prompt)
-        headers = {
-            'Content-Type': 'application/json',
-            'Authorization': f'Bearer {api_key}'
-        }
-        data = {
-            "model": model,
-            "messages": [
-                {"role": "system", "content": prompt},
-                {"role": "user", "content": content}
-            ]
-        }
+        if model == "gemini":
+            headers = {
+                'Content-Type': 'application/json',
+                'x-goog-api-key': api_key
+            }
+            data = {
+            "contents": [
+                {"role": "user", "parts": [{"text": prompt}]},
+                {"role": "model", "parts": [{"text": ""}]},
+                {"role": "user", "parts": [{"text": content}]}
+            ],
+            "generationConfig": {
+                "maxOutputTokens": 800
+            }
+            }
+            api_url = api_base
+        else:
+            headers = {
+                'Content-Type': 'application/json',
+                'Authorization': f'Bearer {api_key}'
+            }
+            data = {
+                "model": model,
+                "messages": [
+                    {"role": "system", "content": prompt},
+                    {"role": "user", "content": content}
+                ]
+            }
+            api_url = f"{api_base}/chat/completions"
         try:
-            response = requests.post(f"{api_base}/chat/completions", headers=headers, data=json.dumps(data))
+            response = requests.post(api_url, headers=headers, data=json.dumps(data))
             response.raise_for_status()
             response_data = response.json()
 
             # 解析 JSON 并获取 content
-            if "choices" in response_data and len(response_data["choices"]) > 0:
-                first_choice = response_data["choices"][0]
-                if "message" in first_choice and "content" in first_choice["message"]:
-                    response_content = first_choice["message"]["content"].strip()  # 获取响应内容
-                    logger.info(f"OpenAI API response content")  # 记录响应内容
-                    reply_content = response_content.replace("\\n", "\n")  # 替换 \\n 为 \n
-                else:
-                    logger.error("Content not found in the response")
-                    reply_content = "Content not found in the OpenAI API response"
+            if model == "gemini":
+                if "candidates" in response_data and len(response_data["candidates"]) > 0:
+                    first_candidate = response_data["candidates"][0]
+                    if "content" in first_candidate:
+                        if "parts" in first_candidate["content"] and len(first_candidate["content"]["parts"]) > 0:
+                            response_content = first_candidate["content"]["parts"][0]["text"].strip()  # 获取响应内容
+                            logger.info(f"Gemini API response content: {response_content}")  # 记录响应内容
+                            reply_content = response_content.replace("\\n", "\n")  # 替换 \\n 为 \n
+                        else:
+                            logger.error("Parts not found in the Gemini API response content")
+                            reply_content = "Parts not found in the Gemini API response content"
+                    else:
+                        logger.error("Content not found in the Gemini API response candidate")
+                        reply_content = "Content not found in the Gemini API response candidate"               
             else:
-                logger.error("No choices available in the response")
-                reply_content = "No choices available in the OpenAI API response"
+                if "choices" in response_data and len(response_data["choices"]) > 0:
+                    first_choice = response_data["choices"][0]
+                    if "message" in first_choice and "content" in first_choice["message"]:
+                        response_content = first_choice["message"]["content"].strip()  # 获取响应内容
+                        logger.info(f"OpenAI API response content")  # 记录响应内容
+                        reply_content = response_content.replace("\\n", "\n")  # 替换 \\n 为 \n
+                    else:
+                        logger.error("Content not found in the response")
+                        reply_content = "Content not found in the OpenAI API response"
+                else:
+                    logger.error("No choices available in the response")
+                    reply_content = "No choices available in the OpenAI API response"
 
         except requests.exceptions.RequestException as e:
             logger.error(f"Error calling OpenAI API: {e}")
@@ -656,7 +699,7 @@ class sum4all(Plugin):
 
         reply = Reply()
         reply.type = ReplyType.TEXT
-        reply.content = f"{reply_content}\n\n💬5min内输入“{self.qa_prefix}+具体问题”，可继续追问" 
+        reply.content = f"{remove_markdown(reply_content)}\n\n💬5min内输入{self.qa_prefix}+问题，可继续追问" 
         e_context["reply"] = reply
         e_context.action = EventAction.BREAK_PASS
     def read_pdf(self, file_path):
@@ -828,7 +871,55 @@ class sum4all(Plugin):
 
         reply = Reply()
         reply.type = ReplyType.TEXT
-        reply.content = f"{remove_markdown(reply_content)}\n💬5min内输入{self.qa_prefix}+问题，可继续追问"  
+        reply.content = f"{remove_markdown(reply_content)}\n\n💬5min内输入{self.qa_prefix}+问题，可继续追问"  
+        e_context["reply"] = reply
+        e_context.action = EventAction.BREAK_PASS
+
+    def handle_gemini_image(self, base64_image, e_context):
+        logger.info("handle_gemini_image: 解析Gemini图像处理API的响应")
+        msg: ChatMessage = e_context["context"]["msg"]
+        user_id = msg.from_user_id
+        user_params = self.params_cache.get(user_id, {})
+        image_prompt = user_params.get('image_prompt', self.image_prompt)
+        api_key = self.gemini_key
+        logger.info("image prompt :" + image_prompt)
+        
+        payload = {
+            "contents": [
+                {
+                    "parts": [
+                        {"text": image_prompt},
+                        {
+                            "inline_data": {
+                                "mime_type":"image/png",
+                                "data": base64_image
+                            }
+                        }
+                    ]
+                }
+            ],
+            "generationConfig": {
+                "maxOutputTokens": 800
+            }
+        }
+
+        headers = {
+            "Content-Type": "application/json",
+            'x-goog-api-key': api_key
+        }
+
+        try:
+            response = requests.post(f"https://generativelanguage.googleapis.com/v1/models/gemini-pro-vision:generateContent", headers=headers, json=payload)
+            response.raise_for_status()
+            response_json = response.json()
+            # 提取响应中的文本内容
+            reply_content = response_json.get('candidates', [{}])[0].get('content', {}).get('parts', [{}])[0].get('text', 'No text found in the response')
+        except Exception as e:
+            reply_content = f"An error occurred while processing Gemini API response: {e}"
+
+        reply = Reply()
+        reply.type = ReplyType.TEXT
+        reply.content = f"{remove_markdown(reply_content)}\n\n💬5min内输入{self.qa_prefix}+问题，可继续追问"  
         e_context["reply"] = reply
         e_context.action = EventAction.BREAK_PASS
 
@@ -935,7 +1026,7 @@ class sum4all(Plugin):
                 logger.info("XunFei Image API response content")  # 记录响应内容
                 reply = Reply()
                 reply.type = ReplyType.TEXT
-                reply.content = reply.content = f"{remove_markdown(self.ws_answer)}\n💬5min内输入{self.qa_prefix}+问题，可继续追问"
+                reply.content = reply.content = f"{remove_markdown(self.ws_answer)}\n\n💬5min内输入{self.qa_prefix}+问题，可继续追问"
                 e_context["reply"] = reply
                 e_context.action = EventAction.BREAK_PASS
                 ws.close()
