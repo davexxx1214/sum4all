@@ -98,6 +98,7 @@ class sum4all(Plugin):
             self.perplexity_key = self.config.get("perplexity_key","")
             self.search_service = self.config.get("search_service","")
             self.image_service = self.config.get("image_service","")
+            self.image_service_en = self.config.get("image_service_en","")
             self.xunfei_app_id = self.config.get("xunfei_app_id","")
             self.xunfei_api_key = self.config.get("xunfei_api_key","")
             self.xunfei_api_secret = self.config.get("xunfei_api_secret","")
@@ -105,6 +106,7 @@ class sum4all(Plugin):
             self.search_prefix = self.config.get("search_prefix","搜")
             self.url_sum_trigger = self.config.get("url_sum_trigger", "读网页")
             self.image_sum_trigger = self.config.get("image_sum_trigger","识图")
+            self.image_sum_en_trigger = self.config.get("image_sum_en_trigger","OCR")
             self.image_sum_batch_trigger = self.config.get("image_sum_batch_trigger","批量识图")
             self.close_image_sum_trigger = self.config.get("close_image_sum_trigger","关闭识图")
             self.params_cache = ExpiredDict(300)
@@ -140,6 +142,7 @@ class sum4all(Plugin):
         if user_id not in self.params_cache:
             self.params_cache[user_id] = {}
             self.params_cache[user_id]['image_sum_quota'] = 0
+            self.params_cache[user_id]['image_sum_en_quota'] = 0
             self.params_cache[user_id]['url_sum_quota'] = 0
             logger.info('Added new user to params_cache.')
 
@@ -183,7 +186,23 @@ class sum4all(Plugin):
                     self.params_cache[user_id]['image_prompt'] = self.image_prompt
 
                 self.params_cache[user_id]['image_sum_quota'] = 1
-                reply = Reply(type=ReplyType.TEXT, content="💡已开启单张识图模式，您接下来第一张图片会进行识别。"+ tip)
+                reply = Reply(type=ReplyType.TEXT, content="💡已开启单张识图模式(gemini)，您接下来第一张图片会进行识别。"+ tip)
+                e_context["reply"] = reply
+                e_context.action = EventAction.BREAK_PASS
+
+            if content.startswith(self.image_sum_en_trigger) and self.image_sum:
+                # Call new function to handle search operation
+                pattern = self.image_sum_en_trigger + r"\s(.+)"
+                match = re.match(pattern, content)
+                tip = f"\n未检测到提示词，将使用系统默认提示词。\n\n💬自定义提示词的格式为：{self.image_sum_en_trigger}+空格+提示词"
+                if match:
+                    self.params_cache[user_id]['image_prompt'] = content[len(self.image_sum_en_trigger):]
+                    tip = f"\n\n💬使用的提示词为:{self.params_cache[user_id]['image_prompt'] }"
+                else:
+                    self.params_cache[user_id]['image_prompt'] = self.image_prompt
+
+                self.params_cache[user_id]['image_sum_en_quota'] = 1
+                reply = Reply(type=ReplyType.TEXT, content="💡已开启单张识图模式(gpt-4v)，您接下来第一张图片会进行识别。"+ tip)
                 e_context["reply"] = reply
                 e_context.action = EventAction.BREAK_PASS
 
@@ -244,7 +263,7 @@ class sum4all(Plugin):
             os.remove(file_path)
             logger.info(f"文件 {file_path} 已删除")
         elif context.type == ContextType.IMAGE:
-            if self.params_cache[user_id]['image_sum_quota'] < 1:
+            if self.params_cache[user_id]['image_sum_quota'] < 1 and self.params_cache[user_id]['image_sum_en_quota'] < 1 :
                 logger.info("on_handle_context: 当前用户识图配额不够，不进行识别")
                 return
     
@@ -260,7 +279,6 @@ class sum4all(Plugin):
             
             # 检查是否应该进行图片总结
             if self.image_sum:
-                self.params_cache[user_id]['image_sum_quota'] = self.params_cache[user_id]['image_sum_quota'] - 1
                 logger.info(f"on_handle_context: 开始识图，识图后剩余额度为：{self.params_cache[user_id]['image_sum_quota']}")
                 # 将图片路径转换为Base64编码的字符串
                 base64_image = self.encode_image_to_base64(image_path)
@@ -275,10 +293,14 @@ class sum4all(Plugin):
                 logger.info('Updated last_image_base64 in params_cache for user.')
                 if self.image_service == "xunfei":
                     self.handle_xunfei_image(base64_image, e_context)
-                elif self.image_service == "openai":
-                    self.handle_openai_image(base64_image, e_context)
-                elif self.image_service == "gemini":
-                    self.handle_gemini_image(base64_image, e_context)
+                else:
+                    if self.params_cache[user_id]['image_sum_en_quota'] > 0:
+                        self.handle_openai_image(base64_image, e_context)
+                        self.params_cache[user_id]['image_sum_en_quota'] -=  1
+
+                    elif self.params_cache[user_id]['image_sum_quota'] > 0:
+                        self.handle_gemini_image(base64_image, e_context)
+                        self.params_cache[user_id]['image_sum_quota'] -=  1
             else:
                 logger.info("图片总结功能已禁用，不对图片内容进行处理")
             # 删除文件
