@@ -8,7 +8,6 @@
   "search_prefix":"搜",
   "search_service":"sum4all",
   "image_service":"xunfei",
-  "image_service_en":"openai",
   "bibigpt_key": "",
   "sum4all_key": "",
   "gemini_key": "",

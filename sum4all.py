@@ -98,7 +98,6 @@ class sum4all(Plugin):
             self.perplexity_key = self.config.get("perplexity_key","")
             self.search_service = self.config.get("search_service","")
             self.image_service = self.config.get("image_service","")
-            self.image_service_en = self.config.get("image_service_en","")
             self.xunfei_app_id = self.config.get("xunfei_app_id","")
             self.xunfei_api_key = self.config.get("xunfei_api_key","")
             self.xunfei_api_secret = self.config.get("xunfei_api_secret","")
@@ -279,7 +278,8 @@ class sum4all(Plugin):
             
             # 检查是否应该进行图片总结
             if self.image_sum:
-                logger.info(f"on_handle_context: 开始识图，识图后剩余额度为：{self.params_cache[user_id]['image_sum_quota']}")
+                logger.info(f"on_handle_context: 开始识图，识图后中文剩余额度为：{self.params_cache[user_id]['image_sum_quota']}")
+                logger.info(f"on_handle_context: 开始识图，识图后英文剩余额度为：{self.params_cache[user_id]['image_sum_en_quota']}")
                 # 将图片路径转换为Base64编码的字符串
                 base64_image = self.encode_image_to_base64(image_path)
                 # 更新params_cache中的last_image_path
