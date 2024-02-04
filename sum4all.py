@@ -169,8 +169,7 @@ class sum4all(Plugin):
                         self.handle_openai_image(self.params_cache[user_id]['last_image_base64'], e_context)
                     elif self.image_service == "gemini":
                         self.handle_gemini_image(self.params_cache[user_id]['last_image_base64'], e_context)
-                    elif self.image_service == "qwen-vl-plus":
-                        self.handle_qwen_image(self.params_cache[user_id]['last_image_base64'], e_context)
+
                 # 如果存在最近一次处理的URL，触发URL理解函数
                 elif 'last_url' in self.params_cache[user_id]:
                     logger.info('Last URL found in params_cache for user.')            
@@ -1008,7 +1007,7 @@ class sum4all(Plugin):
 
         reply = Reply()
         reply.type = ReplyType.TEXT
-        reply.content = f"{remove_markdown(reply_content)}\n\n💬5min内输入{self.qa_prefix}+问题，可继续追问"  
+        reply.content = f"{remove_markdown(reply_content)}\n\n"  
         e_context["reply"] = reply
         e_context.action = EventAction.BREAK_PASS
 
