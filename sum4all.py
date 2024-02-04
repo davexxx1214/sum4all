@@ -992,9 +992,8 @@ class sum4all(Plugin):
         try:
             response = dashscope.MultiModalConversation.call(model='qwen-vl-plus',
                                                      messages=messages, api_key=self.qwen_key)
-            response_json = response.json()
             # 提取响应中的文本内容
-            reply_content = response_json['output']['choices'][0]['message']['content'][0]['text']
+            reply_content = response['output']['choices'][0]['message']['content'][0]['text']
         except Exception as e:
             reply_content = f"An error occurred while processing qwen-vl-plus API response: {e}"
 
