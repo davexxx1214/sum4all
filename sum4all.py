@@ -1003,7 +1003,7 @@ class sum4all(Plugin):
             # 提取响应中的文本内容
             reply_content = response['output']['choices'][0]['message']['content'][0]['text']
         except Exception as e:
-            reply_content = f"An error occurred while processing qwen-vl-plus API response: {e}"
+            reply_content = f"❌识图出现错误"
 
         reply = Reply()
         reply.type = ReplyType.TEXT
