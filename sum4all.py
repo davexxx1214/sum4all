@@ -300,7 +300,9 @@ class sum4all(Plugin):
                 if self.image_service == "xunfei":
                     self.handle_xunfei_image(base64_image, e_context)
                 elif self.image_service == "qwen-vl-plus":
-                    self.handle_qwen_image(image_path, e_context)
+                    if self.params_cache[user_id]['image_sum_quota'] > 0:
+                        self.handle_qwen_image(image_path, e_context)
+                        self.params_cache[user_id]['image_sum_quota'] -=  1
                 else:
                     # if self.params_cache[user_id]['image_sum_en_quota'] > 0:
                     #     self.handle_openai_image(base64_image, e_context)
