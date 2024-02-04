@@ -313,8 +313,8 @@ class sum4all(Plugin):
             else:
                 logger.info("图片总结功能已禁用，不对图片内容进行处理")
             # 删除文件
-            # os.remove(image_path)
-            # logger.info(f"文件 {image_path} 已删除")
+            os.remove(image_path)
+            logger.info(f"文件 {image_path} 已删除")
         elif context.type == ContextType.SHARING:  #匹配卡片分享
             if self.params_cache[user_id]['url_sum_quota'] < 1:
                 logger.info("on_handle_context: 当前用户读取网页配额不够，不进行识别")
@@ -985,7 +985,7 @@ class sum4all(Plugin):
         current_dir = os.getcwd()
 
         # 构建 Linux 下的文件路径
-        image_path = os.path.join(current_dir, 'tmp/240204-130308.png')
+        image_path = os.path.join(current_dir, image_path)
         linux_path = 'file://' + image_path
         
         messages = [
