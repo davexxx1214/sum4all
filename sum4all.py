@@ -1007,7 +1007,7 @@ class sum4all(Plugin):
 
         reply = Reply()
         reply.type = ReplyType.TEXT
-        reply.content = f"{remove_markdown(reply_content)}\n\n"  
+        reply.content = f"{remove_markdown(reply_content)}"  
         e_context["reply"] = reply
         e_context.action = EventAction.BREAK_PASS
 
