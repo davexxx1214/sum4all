@@ -982,13 +982,17 @@ class sum4all(Plugin):
         image_prompt = user_params.get('image_prompt', self.image_prompt)
         logger.info("image prompt :" + image_prompt)
         logger.info("image path :" + image_path)
+        current_dir = os.getcwd()
 
+        # 构建 Linux 下的文件路径
+        image_path = os.path.join(current_dir, 'tmp/240204-130308.png')
+        linux_path = 'file://' + image_path
         
         messages = [
             {
                 "role": "user",
                 "content": [
-                    {"image": image_path},
+                    {"image": linux_path},
                     {"text": image_prompt}
                 ]
             }
