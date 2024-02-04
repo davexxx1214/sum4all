@@ -288,7 +288,10 @@ class sum4all(Plugin):
                 base64_image = self.encode_image_to_base64(image_path)
                 # 更新params_cache中的last_image_path
                 # self.params_cache[user_id] = {}
-                self.params_cache[user_id]['last_image_base64'] = base64_image
+                if self.image_service == "qwen-vl-plus":
+                    self.params_cache[user_id]['last_image_base64'] = image_path
+                else:
+                    self.params_cache[user_id]['last_image_base64'] = base64_image
 
                 # 确保追问模式中，识图以后，就只针对图片进行追问
                 if 'last_url' in self.params_cache[user_id]:
@@ -298,7 +301,7 @@ class sum4all(Plugin):
                 if self.image_service == "xunfei":
                     self.handle_xunfei_image(base64_image, e_context)
                 elif self.image_service == "qwen-vl-plus":
-                    self.handle_qwen_image(base64_image, e_context)
+                    self.handle_qwen_image(image_path, e_context)
                 else:
                     # if self.params_cache[user_id]['image_sum_en_quota'] > 0:
                     #     self.handle_openai_image(base64_image, e_context)
@@ -971,7 +974,7 @@ class sum4all(Plugin):
         ws.question = self.checklen(self.getText("user",image_prompt))
         ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE})
 
-    def handle_qwen_image(self, base64_image, e_context):
+    def handle_qwen_image(self, image_path, e_context):
         logger.info("handle_gemini_image: 解析qwen-vl-plus图像处理API的响应")
         msg: ChatMessage = e_context["context"]["msg"]
         user_id = msg.from_user_id
@@ -983,7 +986,7 @@ class sum4all(Plugin):
             {
                 "role": "user",
                 "content": [
-                    {"image": base64_image},
+                    {"image": image_path},
                     {"text": image_prompt}
                 ]
             }
