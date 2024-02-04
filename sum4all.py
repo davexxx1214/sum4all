@@ -34,6 +34,7 @@ from time import mktime
 from urllib.parse import urlencode
 from wsgiref.handlers import format_date_time
 import websocket  # 使用websocket_client
+import dashscope
 
 EXTENSION_TO_TYPE = {
     'pdf': 'pdf',
@@ -78,6 +79,7 @@ class sum4all(Plugin):
             # 从配置中提取所需的设置
             self.sum_service = self.config.get("sum_service","")
             self.gemini_key = self.config.get("gemini_key","")
+            self.qwen_key = self.config.get("qwen_key","")
             self.bibigpt_key = self.config.get("bibigpt_key","")
             self.outputLanguage = self.config.get("outputLanguage","zh-CN")
             self.group_sharing = self.config.get("group_sharing","true")
@@ -167,6 +169,8 @@ class sum4all(Plugin):
                         self.handle_openai_image(self.params_cache[user_id]['last_image_base64'], e_context)
                     elif self.image_service == "gemini":
                         self.handle_gemini_image(self.params_cache[user_id]['last_image_base64'], e_context)
+                    elif self.image_service == "qwen-vl-plus":
+                        self.handle_qwen_image(self.params_cache[user_id]['last_image_base64'], e_context)
                 # 如果存在最近一次处理的URL，触发URL理解函数
                 elif 'last_url' in self.params_cache[user_id]:
                     logger.info('Last URL found in params_cache for user.')            
@@ -177,7 +181,7 @@ class sum4all(Plugin):
                 # Call new function to handle search operation
                 pattern = self.image_sum_trigger + r"\s(.+)"
                 match = re.match(pattern, content)
-                tip = f"\n未检测到提示词，将使用系统默认提示词。\n\n💬自定义提示词的格式为：{self.image_sum_trigger}+空格+提示词"
+                tip = f"💡未检测到提示词，将使用系统默认提示词。\n\n💬自定义提示词的格式为：{self.image_sum_trigger}+空格+提示词"
                 if match:
                     self.params_cache[user_id]['image_prompt'] = content[len(self.image_sum_trigger):]
                     tip = f"\n\n💬使用的提示词为:{self.params_cache[user_id]['image_prompt'] }"
@@ -185,7 +189,7 @@ class sum4all(Plugin):
                     self.params_cache[user_id]['image_prompt'] = self.image_prompt
 
                 self.params_cache[user_id]['image_sum_quota'] = 1
-                reply = Reply(type=ReplyType.TEXT, content="💡已开启单张识图模式(gemini)，您接下来第一张图片会进行识别。"+ tip)
+                reply = Reply(type=ReplyType.TEXT, content="💡已开启识图模式(qwen-vl-plus)，您接下来第一张图片会进行识别。"+ tip)
                 e_context["reply"] = reply
                 e_context.action = EventAction.BREAK_PASS
 
@@ -293,6 +297,8 @@ class sum4all(Plugin):
                 logger.info('Updated last_image_base64 in params_cache for user.')
                 if self.image_service == "xunfei":
                     self.handle_xunfei_image(base64_image, e_context)
+                elif self.image_service == "qwen-vl-plus":
+                    self.handle_qwen_image(base64_image, e_context)
                 else:
                     # if self.params_cache[user_id]['image_sum_en_quota'] > 0:
                     #     self.handle_openai_image(base64_image, e_context)
@@ -965,7 +971,38 @@ class sum4all(Plugin):
         ws.question = self.checklen(self.getText("user",image_prompt))
         ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE})
 
+    def handle_qwen_image(self, base64_image, e_context):
+        logger.info("handle_gemini_image: 解析qwen-vl-plus图像处理API的响应")
+        msg: ChatMessage = e_context["context"]["msg"]
+        user_id = msg.from_user_id
+        user_params = self.params_cache.get(user_id, {})
+        image_prompt = user_params.get('image_prompt', self.image_prompt)
+        logger.info("image prompt :" + image_prompt)
+        
+        messages = [
+            {
+                "role": "user",
+                "content": [
+                    {"image": base64_image},
+                    {"text": image_prompt}
+                ]
+            }
+        ]
 
+        try:
+            response = dashscope.MultiModalConversation.call(model='qwen-vl-plus',
+                                                     messages=messages, api_key=self.qwen_key)
+            response_json = response.json()
+            # 提取响应中的文本内容
+            reply_content = response_json['output']['choices'][0]['message']['content'][0]['text']
+        except Exception as e:
+            reply_content = f"An error occurred while processing qwen-vl-plus API response: {e}"
+
+        reply = Reply()
+        reply.type = ReplyType.TEXT
+        reply.content = f"{remove_markdown(reply_content)}\n\n💬5min内输入{self.qa_prefix}+问题，可继续追问"  
+        e_context["reply"] = reply
+        e_context.action = EventAction.BREAK_PASS
 
        # 生成url
     def create_url(self):
