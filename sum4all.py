@@ -981,6 +981,8 @@ class sum4all(Plugin):
         user_params = self.params_cache.get(user_id, {})
         image_prompt = user_params.get('image_prompt', self.image_prompt)
         logger.info("image prompt :" + image_prompt)
+        logger.info("image path :" + image_path)
+
         
         messages = [
             {
