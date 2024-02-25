@@ -302,7 +302,6 @@ class sum4all(Plugin):
                 elif self.image_service == "qwen-vl-plus":
                     if self.params_cache[user_id]['image_sum_quota'] > 0:
                         self.handle_qwen_image(image_path, e_context)
-                        self.params_cache[user_id]['image_sum_quota'] -=  1
                 else:
                     # if self.params_cache[user_id]['image_sum_en_quota'] > 0:
                     #     self.handle_openai_image(base64_image, e_context)
@@ -310,7 +309,8 @@ class sum4all(Plugin):
 
                     if self.params_cache[user_id]['image_sum_quota'] > 0:
                         self.handle_gemini_image(base64_image, e_context)
-                        self.params_cache[user_id]['image_sum_quota'] -=  1
+                        
+                self.params_cache[user_id]['image_sum_quota'] = 0
             else:
                 logger.info("图片总结功能已禁用，不对图片内容进行处理")
             # 删除文件
