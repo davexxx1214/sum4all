@@ -265,12 +265,8 @@ class sum4all(Plugin):
             os.remove(file_path)
             logger.info(f"文件 {file_path} 已删除")
         elif context.type == ContextType.IMAGE:
-
+            
     
-            if isgroup and not self.group_image_sum:
-                # 群聊中忽略处理图片
-                logger.info("群聊消息，图片处理功能已禁用")
-                return
             logger.info("on_handle_context: 开始处理图片")
             context.get("msg").prepare()
             image_path = context.content
