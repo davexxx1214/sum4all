@@ -294,8 +294,7 @@ class sum4all(Plugin):
                 if self.image_service == "xunfei":
                     self.handle_xunfei_image(base64_image, e_context)
                 elif self.image_service == "qwen-vl-plus":
-                    if self.params_cache[user_id]['image_sum_quota'] > 0:
-                        self.handle_qwen_image(image_path, e_context)
+                    self.handle_qwen_image(image_path, e_context)
                 else:
                     # if self.params_cache[user_id]['image_sum_en_quota'] > 0:
                     #     self.handle_openai_image(base64_image, e_context)
@@ -970,7 +969,7 @@ class sum4all(Plugin):
         ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE})
 
     def handle_qwen_image(self, image_path, e_context):
-        logger.info("handle_gemini_image: 解析qwen-vl-plus图像处理API的响应")
+        logger.info("handle_qwen_image: 解析qwen-vl-plus图像处理API的响应")
         msg: ChatMessage = e_context["context"]["msg"]
         user_id = msg.from_user_id
         user_params = self.params_cache.get(user_id, {})
