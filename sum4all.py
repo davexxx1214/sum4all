@@ -265,9 +265,7 @@ class sum4all(Plugin):
             os.remove(file_path)
             logger.info(f"文件 {file_path} 已删除")
         elif context.type == ContextType.IMAGE:
-            if self.params_cache[user_id]['image_sum_quota'] < 1:
-                logger.info("on_handle_context: 当前用户识图配额不够，不进行识别")
-                return
+
     
             if isgroup and not self.group_image_sum:
                 # 群聊中忽略处理图片
