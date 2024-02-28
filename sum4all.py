@@ -1002,7 +1002,7 @@ class sum4all(Plugin):
 
         reply = Reply()
         reply.type = ReplyType.TEXT
-        reply.content = f"{remove_markdown(reply_content)} + \n\n(复制上面的信息@我 可以向我提问)"  
+        reply.content = f"{remove_markdown(reply_content)} + \n\n(复制上面图片里的信息@我 可以向我提问)"  
         e_context["reply"] = reply
         e_context.action = EventAction.BREAK_PASS
 
