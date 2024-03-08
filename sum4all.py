@@ -180,7 +180,7 @@ class sum4all(Plugin):
                 # Call new function to handle search operation
                 pattern = self.image_sum_trigger + r"\s(.+)"
                 match = re.match(pattern, content)
-                tip = f"💡未检测到提示词，将使用系统默认提示词。\n\n💬自定义提示词的格式为：{self.image_sum_trigger}+空格+提示词"
+                tip = f"💡未检测到提示词，将直接读出图片中的文字信息。\n\n💬自定义提示词的格式为：{self.image_sum_trigger}+空格+提示词"
                 if match:
                     self.params_cache[user_id]['image_prompt'] = content[len(self.image_sum_trigger):]
                     tip = f"\n\n💬使用的提示词为:{self.params_cache[user_id]['image_prompt'] }"
