@@ -188,7 +188,7 @@ class sum4all(Plugin):
                     self.params_cache[user_id]['image_prompt'] = self.image_prompt
 
                 self.params_cache[user_id]['image_sum_quota'] = 1
-                reply = Reply(type=ReplyType.TEXT, content="💡已开启识图模式(qwen-vl-plus)，您接下来第一张图片会进行识别。"+ tip)
+                reply = Reply(type=ReplyType.TEXT, content="💡已开启识图模式，您接下来第一张图片会进行识别。"+ tip)
                 e_context["reply"] = reply
                 e_context.action = EventAction.BREAK_PASS
 
@@ -265,7 +265,14 @@ class sum4all(Plugin):
             os.remove(file_path)
             logger.info(f"文件 {file_path} 已删除")
         elif context.type == ContextType.IMAGE:
-            
+            if self.params_cache[user_id]['image_sum_quota'] < 1:
+                logger.info("on_handle_context: 当前用户识图配额不够，不进行识别")
+                return
+    
+            if isgroup and not self.group_image_sum:
+                # 群聊中忽略处理图片
+                logger.info("群聊消息，图片处理功能已禁用")
+                return
     
             logger.info("on_handle_context: 开始处理图片")
             context.get("msg").prepare()
@@ -307,8 +314,8 @@ class sum4all(Plugin):
             else:
                 logger.info("图片总结功能已禁用，不对图片内容进行处理")
             # 删除文件
-            # os.remove(image_path)
-            # logger.info(f"文件 {image_path} 已删除")
+            os.remove(image_path)
+            logger.info(f"文件 {image_path} 已删除")
         elif context.type == ContextType.SHARING:  #匹配卡片分享
             if self.params_cache[user_id]['url_sum_quota'] < 1:
                 logger.info("on_handle_context: 当前用户读取网页配额不够，不进行识别")
@@ -1002,7 +1009,7 @@ class sum4all(Plugin):
 
         reply = Reply()
         reply.type = ReplyType.TEXT
-        reply.content = f"{remove_markdown(reply_content)} + \n\n(复制上面图片里的信息@我 可以向我提问)"  
+        reply.content = f"{remove_markdown(reply_content)}  \n\n(复制上面图片里的信息@我 可以向我提问)"  
         e_context["reply"] = reply
         e_context.action = EventAction.BREAK_PASS
 
