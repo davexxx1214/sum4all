@@ -145,7 +145,7 @@ class sum4all(Plugin):
             self.params_cache[user_id]['image_sum_quota'] = 0
             # self.params_cache[user_id]['image_sum_en_quota'] = 0
             self.params_cache[user_id]['url_sum_quota'] = 0
-            logger.info('Added new user to params_cache.')
+            logger.debug('Added new user to params_cache.')
 
         if user_id in self.params_cache and ('last_file_content' in self.params_cache[user_id] or 'last_image_base64' in self.params_cache[user_id] or 'last_url' in self.params_cache[user_id]):
             if content.startswith(self.qa_prefix):
@@ -188,7 +188,7 @@ class sum4all(Plugin):
                     self.params_cache[user_id]['image_prompt'] = self.image_prompt
 
                 self.params_cache[user_id]['image_sum_quota'] = 1
-                reply = Reply(type=ReplyType.TEXT, content="💡已开启识图模式(qwen-vl-plus)，您接下来第一张图片会进行识别。"+ tip)
+                reply = Reply(type=ReplyType.TEXT, content="💡已开启识图模式，您接下来第一张图片会进行识别。"+ tip)
                 e_context["reply"] = reply
                 e_context.action = EventAction.BREAK_PASS
 
@@ -266,7 +266,7 @@ class sum4all(Plugin):
             logger.info(f"文件 {file_path} 已删除")
         elif context.type == ContextType.IMAGE:
             if self.params_cache[user_id]['image_sum_quota'] < 1:
-                logger.info("on_handle_context: 当前用户识图配额不够，不进行识别")
+                logger.debug("on_handle_context: 当前用户识图配额不够，不进行识别")
                 return
     
             if isgroup and not self.group_image_sum:
