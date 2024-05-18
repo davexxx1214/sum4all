@@ -303,12 +303,11 @@ class sum4all(Plugin):
                     if self.params_cache[user_id]['image_sum_quota'] > 0:
                         self.handle_qwen_image(image_path, e_context)
                 else:
-                    # if self.params_cache[user_id]['image_sum_en_quota'] > 0:
-                    #     self.handle_openai_image(base64_image, e_context)
-                    #     self.params_cache[user_id]['image_sum_en_quota'] -=  1
+                    if self.params_cache[user_id]['image_sum_en_quota'] > 0:
+                        self.handle_openai_image(base64_image, e_context)
 
-                    if self.params_cache[user_id]['image_sum_quota'] > 0:
-                        self.handle_gemini_image(base64_image, e_context)
+                    # if self.params_cache[user_id]['image_sum_quota'] > 0:
+                    #     self.handle_gemini_image(base64_image, e_context)
                         
                 self.params_cache[user_id]['image_sum_quota'] = 0
             else:
