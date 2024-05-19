@@ -329,6 +329,8 @@ class sum4all(Plugin):
 
                     if self.params_cache[user_id]['online_image_sum_quota'] > 0:
                         self.online_handle_openai_image(base64_image, e_context)
+                        self.params_cache[user_id]['online_image_sum_quota'] = 0
+
 
                     # if self.params_cache[user_id]['image_sum_quota'] > 0:
                     #     self.handle_gemini_image(base64_image, e_context)
