@@ -942,7 +942,7 @@ class sum4all(Plugin):
         online_image_prompt = user_params.get('online_image_prompt', self.online_image_prompt)
         logger.info(f"online_image_prompt :{online_image_prompt}")
 
-        image_prompt = f"请根据图片提取出重点的信息，方便我后续上网搜索:包括名称，地点。你应该尽量用简短的语言或者短语回答我。例如:地点:上海长泰广场 名称:品川。提示:{online_image_prompt}。"
+        image_prompt = f"请根据图片提取出重点的信息，方便我后续上网搜索:包括地点，店铺或者景点名称。你应该尽量用简短的语言或者短语回答我。例如:地点:上海长泰广场 店铺名称:品川\n 或者: 地点:杭州 景点:雷峰塔。提示:{online_image_prompt}。"
         logger.info("image prompt :" + image_prompt)
 
         headers = {
