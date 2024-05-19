@@ -982,6 +982,7 @@ class sum4all(Plugin):
                     response_content = first_choice["message"]["content"].strip()
                     logger.info("OpenAI API response content")  # 记录响应内容
                     content = response_content
+                    content = f"联网查询: {content}"
                     logger.info(f"图片识别结果: {content}")  # 记录响应内容
                     reply_content = self.online_search_details(content)
                 else:
