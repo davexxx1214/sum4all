@@ -209,7 +209,7 @@ class sum4all(Plugin):
                     self.params_cache[user_id]['online_image_prompt'] = self.online_image_prompt
 
                 self.params_cache[user_id]['online_image_sum_quota'] = 1
-                reply = Reply(type=ReplyType.TEXT, content="💡已开启联网查询店铺模式，您接下来第一张图片会进行识别。"+ tip)
+                reply = Reply(type=ReplyType.TEXT, content="💡已开启联网查询点位模式，您接下来第一张图片会进行识别。"+ tip)
                 e_context["reply"] = reply
                 e_context.action = EventAction.BREAK_PASS
 
