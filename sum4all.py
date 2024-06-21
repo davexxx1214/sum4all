@@ -259,7 +259,7 @@ class sum4all(Plugin):
                 match = re.match(pattern, content)
                 if match: ##   匹配上了读文件的指令
                     self.params_cache[user_id]['file_prompt'] = content[len(self.file_sum_trigger):]
-                    tip = f"\n欢迎使用文件解析服务。\n\n💬当前使用的提示词为:{self.params_cache[user_id]['file_prompt'] }"
+                    tip = f"\n欢迎使用文件解析服务。将对文件里的内容进行解析\n支持pdf、docx、markdown、txt、xls、csv、html、ppt文件\n\n💬当前使用的提示词为:{self.params_cache[user_id]['file_prompt'] }"
                 else:
                     tip = f"\n欢迎使用文件解析服务。\n\n💬指令格式为：{self.file_sum_trigger} + 空格 + 提示词，\n例如：{self.file_sum_trigger} 帮我把所有文字翻译成英文"
 
