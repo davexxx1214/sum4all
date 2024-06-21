@@ -96,7 +96,13 @@ class sum4all(Plugin):
             self.online_image_prompt = self.config.get("online_image_prompt","")
             self.sum4all_key = self.config.get("sum4all_key","")
             self.search_sum = self.config.get("search_sum","")
+
             self.file_sum = self.config.get("file_sum","")
+            self.file_sum_trigger = self.config.get("file_sum_trigger","")
+            self.open_ai_api_file_base = self.config.get("open_ai_api_file_base","")
+            self.open_ai_api_file_key = self.config.get("open_ai_api_file_key","")
+            self.open_ai_api_file_mode = self.config.get("open_ai_api_file_mode","")
+
             self.image_sum = self.config.get("image_sum","")
             self.url_sum = self.config.get("url_sum","")
             self.perplexity_key = self.config.get("perplexity_key","")
@@ -150,6 +156,8 @@ class sum4all(Plugin):
 
             # self.params_cache[user_id]['image_sum_en_quota'] = 0
             self.params_cache[user_id]['url_sum_quota'] = 0
+            self.params_cache[user_id]['file_sum_quota'] = 0
+
             logger.debug('Added new user to params_cache.')
 
         if user_id in self.params_cache and ('last_file_content' in self.params_cache[user_id] or 'last_image_base64' in self.params_cache[user_id] or 'last_url' in self.params_cache[user_id]):
@@ -245,6 +253,22 @@ class sum4all(Plugin):
                 e_context["reply"] = reply
                 e_context.action = EventAction.BREAK_PASS
 
+            if content.startswith(self.file_sum_trigger) and self.url_sum:
+                # Call new function to handle search operation
+                pattern = self.file_sum_trigger + r"\s(.+)"
+                match = re.match(pattern, content)
+                if match: ##   匹配上了读文件的指令
+                    self.params_cache[user_id]['file_prompt'] = content[len(self.file_sum_trigger):]
+                    tip = f"\n欢迎使用文件解析服务。\n\n💬当前使用的提示词为:{self.params_cache[user_id]['prompt'] }"
+                else:
+                    tip = f"\n欢迎使用文件解析服务。\n\n💬指令格式为：{self.file_sum_trigger} + 空格 + 提示词，\n例如：{self.file_sum_trigger} 帮我把所有文字翻译成英文"
+
+
+                self.params_cache[user_id]['file_sum_quota'] = 1
+                reply = Reply(type=ReplyType.TEXT, content= tip)
+                e_context["reply"] = reply
+                e_context.action = EventAction.BREAK_PASS
+
             elif content.startswith(self.image_sum_batch_trigger) and self.image_sum:
                 # Call new function to handle search operation
                 self.params_cache[user_id]['image_sum_quota'] = 5
@@ -266,6 +290,11 @@ class sum4all(Plugin):
                 # 群聊中忽略处理文件
                 logger.info("群聊消息，文件处理功能已禁用")
                 return
+            
+            if self.params_cache[user_id]['file_sum_quota'] < 1:
+                logger.info("on_handle_context: 当前用户读取文件配额不够，不进行解析")
+                return
+            
             logger.info("on_handle_context: 处理上下文开始")
             context.get("msg").prepare()
             file_path = context.content
@@ -280,6 +309,7 @@ class sum4all(Plugin):
                 self.params_cache[user_id]['last_file_content'] = file_content
                 logger.info('Updated last_file_content in params_cache for user.')
                 self.handle_file(file_content, e_context)
+                self.params_cache[user_id]['file_sum_quota'] = 0
             else:
                 logger.info("文件总结功能已禁用，不对文件内容进行处理")
             # 删除文件
@@ -671,9 +701,9 @@ class sum4all(Plugin):
         logger.info("handle_file: 向OpenAI发送内容总结请求")
         # 根据sum_service的值选择API密钥和基础URL
         if self.sum_service == "openai":
-            api_key = self.open_ai_api_key
-            api_base = self.open_ai_api_base
-            model = self.model
+            api_key = self.open_ai_api_file_key
+            api_base = self.open_ai_api_file_base
+            model = self.open_ai_api_file_mode
         elif self.sum_service == "sum4all":
             api_key = self.sum4all_key
             api_base = "https://pro.sum4all.site/v1"
@@ -688,7 +718,8 @@ class sum4all(Plugin):
         msg: ChatMessage = e_context["context"]["msg"]
         user_id = msg.from_user_id
         user_params = self.params_cache.get(user_id, {})
-        prompt = user_params.get('prompt', self.prompt)
+        prompt = user_params.get('file_prompt', self.prompt)
+        logger.info(f"prompt = {prompt}")
         if model == "gemini":
             headers = {
                 'Content-Type': 'application/json',
@@ -701,7 +732,7 @@ class sum4all(Plugin):
                 {"role": "user", "parts": [{"text": content}]}
             ],
             "generationConfig": {
-                "maxOutputTokens": 800
+                "maxOutputTokens": 200000
             }
             }
             api_url = api_base
