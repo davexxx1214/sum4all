@@ -844,13 +844,20 @@ class sum4all(Plugin):
         with open(file_path, 'r', encoding='utf-8') as file:
             soup = BeautifulSoup(file, 'html.parser')
             return soup.get_text()
-    def read_ppt(self, file_path):
+    def read_ppt(file_path):
         presentation = Presentation(file_path)
         content = ''
         for slide in presentation.slides:
             for shape in slide.shapes:
-                if hasattr(shape, "text"):
-                    content += shape.text + '\n'
+                if shape.has_text_frame:
+                    for paragraph in shape.text_frame.paragraphs:
+                        for run in paragraph.runs:
+                            content += run.text + '\n'
+                elif shape.has_table:
+                    for row in shape.table.rows:
+                        for cell in row.cells:
+                            content += cell.text + '\n'
+                # 可以继续添加其他形状类型的处理逻辑
         return content
     def split_text_chinese(self, text, overlap_tokens=500):
         tokens = jieba.cut(text)
