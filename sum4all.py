@@ -844,7 +844,7 @@ class sum4all(Plugin):
         with open(file_path, 'r', encoding='utf-8') as file:
             soup = BeautifulSoup(file, 'html.parser')
             return soup.get_text()
-    def read_ppt(file_path):
+    def read_ppt(self, file_path):
         presentation = Presentation(file_path)
         content = ''
         for slide in presentation.slides:
