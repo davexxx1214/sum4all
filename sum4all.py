@@ -753,7 +753,7 @@ class sum4all(Plugin):
             }
             api_url = f"{api_base}/chat/completions"
         try:
-            response = requests.post(api_url, headers=headers, data=json.dumps(data))
+            response = requests.post(api_url, headers=headers, data=json.dumps(data), timeout=120)
             response.raise_for_status()
             response_data = response.json()
 
