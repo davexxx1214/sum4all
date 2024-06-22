@@ -306,6 +306,9 @@ class sum4all(Plugin):
                 # 更新params_cache中的last_file_content
                 # self.params_cache[user_id] = {}
                 file_content = self.extract_content(file_path)
+                char_count = len(file_content)
+                logger.info(f"The number of characters in file_content is: {char_count}")
+
                 self.params_cache[user_id]['last_file_content'] = file_content
                 logger.info('Updated last_file_content in params_cache for user.')
                 self.handle_file(file_content, e_context)
