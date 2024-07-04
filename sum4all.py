@@ -168,6 +168,8 @@ class sum4all(Plugin):
                 
                 self.params_cache[user_id]['prompt'] = new_content
                 self.params_cache[user_id]['image_prompt'] = new_content
+                self.params_cache[user_id]['file_prompt'] = new_content
+
                 logger.info('params_cache for user has been successfully updated.')   
                 # 如果存在最近一次处理的文件路径，触发文件理解函数
                 if 'last_file_content' in self.params_cache[user_id]:
@@ -363,10 +365,6 @@ class sum4all(Plugin):
                     if self.params_cache[user_id]['online_image_sum_quota'] > 0:
                         self.params_cache[user_id]['online_image_sum_quota'] = 0
                         self.online_handle_openai_image(base64_image, e_context)
-
-
-                    # if self.params_cache[user_id]['image_sum_quota'] > 0:
-                    #     self.handle_gemini_image(base64_image, e_context)
                         
                 self.params_cache[user_id]['image_sum_quota'] = 0
             else:
