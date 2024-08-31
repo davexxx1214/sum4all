@@ -525,7 +525,7 @@ class sum4all(Plugin):
 
         reply = Reply()
         reply.type = ReplyType.TEXT
-        reply.content = f"{remove_markdown(reply_content)}\n\n💬5min内输入{self.qa_prefix}+问题，可继续追问"             
+        reply.content = f"{remove_markdown(reply_content)}"             
         e_context["reply"] = reply
         e_context.action = EventAction.BREAK_PASS
     def handle_bibigpt(self, content, e_context):    
@@ -790,7 +790,7 @@ class sum4all(Plugin):
 
         reply = Reply()
         reply.type = ReplyType.TEXT
-        reply.content = f"{remove_markdown(reply_content)}\n\n💬5min内输入{self.qa_prefix}+问题，可继续追问" 
+        reply.content = f"{remove_markdown(reply_content)}" 
         e_context["reply"] = reply
         e_context.action = EventAction.BREAK_PASS
     def read_pdf(self, file_path):
@@ -969,7 +969,7 @@ class sum4all(Plugin):
 
         reply = Reply()
         reply.type = ReplyType.TEXT
-        reply.content = f"{remove_markdown(reply_content)}\n\n💬5min内输入{self.qa_prefix}+问题，可继续追问"  
+        reply.content = f"{remove_markdown(reply_content)}"  
         e_context["reply"] = reply
         e_context.action = EventAction.BREAK_PASS
 
@@ -1128,7 +1128,7 @@ class sum4all(Plugin):
 
         reply = Reply()
         reply.type = ReplyType.TEXT
-        reply.content = f"{remove_markdown(reply_content)}\n\n💬5min内输入{self.qa_prefix}+问题，可继续追问"  
+        reply.content = f"{remove_markdown(reply_content)}"  
         e_context["reply"] = reply
         e_context.action = EventAction.BREAK_PASS
 
@@ -1271,7 +1271,7 @@ class sum4all(Plugin):
                 logger.info("XunFei Image API response content")  # 记录响应内容
                 reply = Reply()
                 reply.type = ReplyType.TEXT
-                reply.content = reply.content = f"{remove_markdown(self.ws_answer)}\n\n💬5min内输入{self.qa_prefix}+问题，可继续追问"
+                reply.content = reply.content = f"{remove_markdown(self.ws_answer)}"
                 e_context["reply"] = reply
                 e_context.action = EventAction.BREAK_PASS
                 ws.close()
