@@ -1093,42 +1093,31 @@ class sum4all(Plugin):
         api_key = self.gemini_key
         logger.info("image prompt :" + image_prompt)
         
-        payload = {
-            "contents": [
-                {
-                    "parts": [
-                        {"text": image_prompt},
-                        {
-                            "inline_data": {
-                                "mime_type":"image/png",
-                                "data": base64_image
-                            }
-                        }
-                    ]
-                }
-            ],
-            "generationConfig": {
-                "maxOutputTokens": 800
-            }
-        }
-
-        headers = {
-            "Content-Type": "application/json",
-            'x-goog-api-key': api_key
-        }
-
         try:
-            response = requests.post(f"https://generativelanguage.googleapis.com/v1/models/gemini-pro-vision:generateContent", headers=headers, json=payload)
-            response.raise_for_status()
-            response_json = response.json()
-            # 提取响应中的文本内容
-            reply_content = response_json.get('candidates', [{}])[0].get('content', {}).get('parts', [{}])[0].get('text', 'No text found in the response')
+            # 配置Gemini API
+            import google.generativeai as genai
+            import PIL.Image
+            import base64
+            import io
+            
+            genai.configure(api_key=api_key)
+            model = genai.GenerativeModel("gemini-exp-1114")
+            
+            # 将base64图片转换为PIL Image对象
+            image_data = base64.b64decode(base64_image)
+            image = PIL.Image.open(io.BytesIO(image_data))
+            
+            # 生成内容
+            response = model.generate_content([image_prompt, image])
+            reply_content = response.text
+            
         except Exception as e:
             reply_content = f"An error occurred while processing Gemini API response: {e}"
+            logger.error(f"Gemini API error: {str(e)}")
 
         reply = Reply()
         reply.type = ReplyType.TEXT
-        reply.content = f"{remove_markdown(reply_content)}"  
+        reply.content = f"{remove_markdown(reply_content)}"
         e_context["reply"] = reply
         e_context.action = EventAction.BREAK_PASS
 
