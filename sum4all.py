@@ -180,6 +180,8 @@ class sum4all(Plugin):
                     logger.info('Last image path found in params_cache for user.')            
                     if self.image_service == "xunfei":
                         self.handle_xunfei_image(self.params_cache[user_id]['last_image_base64'], e_context)
+                    elif self.image_service == "qwen-vl-plus":
+                        self.handle_qwen_image(self.params_cache[user_id]['last_image_base64'], e_context)
                     elif self.image_service == "openai":
                         self.handle_openai_image(self.params_cache[user_id]['last_image_base64'], e_context)
                     elif self.image_service == "gemini":
@@ -358,6 +360,10 @@ class sum4all(Plugin):
                 elif self.image_service == "qwen-vl-plus":
                     if self.params_cache[user_id]['image_sum_quota'] > 0:
                         self.handle_qwen_image(image_path, e_context)
+                elif self.image_service == "gemini":
+                    if self.params_cache[user_id]['image_sum_quota'] > 0:
+                        self.handle_gemini_image(base64_image, e_context)
+                        self.params_cache[user_id]['image_sum_quota'] -= 1
                 else:
                     if self.params_cache[user_id]['image_sum_quota'] > 0:
                         self.handle_openai_image(base64_image, e_context)
