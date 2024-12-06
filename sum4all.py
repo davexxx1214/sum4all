@@ -368,9 +368,10 @@ class sum4all(Plugin):
                     if self.params_cache[user_id]['image_sum_quota'] > 0:
                         self.handle_openai_image(base64_image, e_context)
 
-                    if self.params_cache[user_id]['online_image_sum_quota'] > 0:
-                        self.params_cache[user_id]['online_image_sum_quota'] = 0
-                        self.online_handle_openai_image(base64_image, e_context)
+                ## 单独处理联网查询图片的逻辑
+                if self.params_cache[user_id]['online_image_sum_quota'] > 0:
+                    self.params_cache[user_id]['online_image_sum_quota'] = 0
+                    self.online_handle_openai_image(base64_image, e_context)
                         
                 self.params_cache[user_id]['image_sum_quota'] = 0
             else:
