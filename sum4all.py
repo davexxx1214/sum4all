@@ -1109,7 +1109,7 @@ class sum4all(Plugin):
             import io
             
             genai.configure(api_key=api_key)
-            model = genai.GenerativeModel("gemini-exp-1114")
+            model = genai.GenerativeModel("gemini-exp-1206")
             
             # 将base64图片转换为PIL Image对象
             image_data = base64.b64decode(base64_image)
@@ -1148,7 +1148,7 @@ class sum4all(Plugin):
         ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE})
 
     def handle_qwen_image(self, image_path, e_context):
-        logger.info("handle_gemini_image: 解析qwen-vl-plus图像处理API的响应")
+        logger.info("handle_qwen_image: 解析qwen-vl-plus图像处理API的响应")
         msg: ChatMessage = e_context["context"]["msg"]
         user_id = msg.from_user_id
         user_params = self.params_cache.get(user_id, {})
