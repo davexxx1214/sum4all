@@ -180,7 +180,7 @@ class sum4all(Plugin):
                     logger.info('Last image path found in params_cache for user.')            
                     if self.image_service == "xunfei":
                         self.handle_xunfei_image(self.params_cache[user_id]['last_image_base64'], e_context)
-                    elif self.image_service == "qwen-vl-plus":
+                    elif self.image_service == "qwen":
                         self.handle_qwen_image(self.params_cache[user_id]['last_image_base64'], e_context)
                     elif self.image_service == "openai":
                         self.handle_openai_image(self.params_cache[user_id]['last_image_base64'], e_context)
@@ -345,7 +345,7 @@ class sum4all(Plugin):
                 base64_image = self.encode_image_to_base64(image_path)
                 # 更新params_cache中的last_image_path
                 # self.params_cache[user_id] = {}
-                if self.image_service == "qwen-vl-plus":
+                if self.image_service == "qwen":
                     self.params_cache[user_id]['last_image_base64'] = image_path
                 else:
                     self.params_cache[user_id]['last_image_base64'] = base64_image
@@ -357,7 +357,7 @@ class sum4all(Plugin):
                 logger.info('Updated last_image_base64 in params_cache for user.')
                 if self.image_service == "xunfei":
                     self.handle_xunfei_image(base64_image, e_context)
-                elif self.image_service == "qwen-vl-plus":
+                elif self.image_service == "qwen":
                     if self.params_cache[user_id]['image_sum_quota'] > 0:
                         self.handle_qwen_image(image_path, e_context)
                 elif self.image_service == "gemini":
@@ -1148,7 +1148,7 @@ class sum4all(Plugin):
         ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE})
 
     def handle_qwen_image(self, image_path, e_context):
-        logger.info("handle_qwen_image: 解析qwen-vl-plus图像处理API的响应")
+        logger.info("handle_qwen_image: 解析qwen-vl-max-latest图像处理API的响应")
         msg: ChatMessage = e_context["context"]["msg"]
         user_id = msg.from_user_id
         user_params = self.params_cache.get(user_id, {})
@@ -1172,7 +1172,7 @@ class sum4all(Plugin):
         ]
 
         try:
-            response = dashscope.MultiModalConversation.call(model='qwen-vl-plus',
+            response = dashscope.MultiModalConversation.call(model='qwen-vl-max-latest',
                                                      messages=messages, api_key=self.qwen_key)
             # 提取响应中的文本内容
             reply_content = response['output']['choices'][0]['message']['content'][0]['text']
