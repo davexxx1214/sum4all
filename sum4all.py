@@ -1097,7 +1097,7 @@ class sum4all(Plugin):
         user_id = msg.from_user_id
         user_params = self.params_cache.get(user_id, {})
         image_prompt = user_params.get('image_prompt', self.image_prompt)
-        image_prompt = f"{image_prompt} (Always response in Simplifed Chinese, unless user is in English)"
+        image_prompt = f"{image_prompt}"
         api_key = self.gemini_key
         logger.info("image prompt :" + image_prompt)
         
@@ -1109,7 +1109,7 @@ class sum4all(Plugin):
             import io
             
             genai.configure(api_key=api_key)
-            model = genai.GenerativeModel("gemini-2.0-flash-exp")
+            model = genai.GenerativeModel("gemini-2.0-pro-exp")
             
             # 将base64图片转换为PIL Image对象
             image_data = base64.b64decode(base64_image)
