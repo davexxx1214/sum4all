@@ -931,7 +931,7 @@ class sum4all(Plugin):
         }
 
         payload = {
-            "model": "gpt-4o",
+            "model": "o3",
             "messages": [
                 {
                     "role": "user",
@@ -949,7 +949,7 @@ class sum4all(Plugin):
                     ]
                 }
             ],
-            "max_tokens": 3000
+            "max_tokens": 8000
         }
 
         try:
