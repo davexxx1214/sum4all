@@ -323,7 +323,7 @@ class sum4all(Plugin):
             os.remove(file_path)
             logger.info(f"文件 {file_path} 已删除")
         elif context.type == ContextType.IMAGE:
-            if self.params_cache[user_id]['image_sum_quota'] < 1 and self.params_cache[user_id]['online_image_sum_quota'] < 1 and self.params_cache[user_id]['online_image_sum_quota'] < 1:
+            if self.params_cache[user_id]['image_sum_quota'] < 1 and self.params_cache[user_id]['online_image_sum_quota'] < 1 and self.params_cache[user_id]['image_sum_en_quota'] < 1:
                 logger.info("on_handle_context: 当前用户识图配额不够，不进行识别")
                 return
     
@@ -339,7 +339,7 @@ class sum4all(Plugin):
             
             # 检查是否应该进行图片总结
             if self.image_sum:
-                logger.info(f"on_handle_context: 开始识图，识图后中文剩余额度为：{self.params_cache[user_id]['image_sum_en_quota']}")
+                #logger.info(f"on_handle_context: 开始识图，识图后中文剩余额度为：{self.params_cache[user_id]['image_sum_en_quota']}")
                 # logger.info(f"on_handle_context: 开始识图，识图后英文剩余额度为：{self.params_cache[user_id]['image_sum_en_quota']}")
                 # 将图片路径转换为Base64编码的字符串
                 base64_image = self.encode_image_to_base64(image_path)
