@@ -948,8 +948,7 @@ class sum4all(Plugin):
                         }
                     ]
                 }
-            ],
-            "max_tokens": 8000
+            ]
         }
 
         try:
