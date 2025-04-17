@@ -154,7 +154,7 @@ class sum4all(Plugin):
             self.params_cache[user_id]['image_sum_quota'] = 0
             self.params_cache[user_id]['online_image_sum_quota'] = 0
 
-            # self.params_cache[user_id]['image_sum_en_quota'] = 0
+            self.params_cache[user_id]['image_sum_en_quota'] = 0
             self.params_cache[user_id]['url_sum_quota'] = 0
             self.params_cache[user_id]['file_sum_quota'] = 0
 
@@ -205,7 +205,7 @@ class sum4all(Plugin):
                     self.params_cache[user_id]['image_prompt'] = self.image_prompt
 
                 self.params_cache[user_id]['image_sum_quota'] = 1
-                reply = Reply(type=ReplyType.TEXT, content="💡已开启识图模式，您接下来第一张图片会进行识别。"+ tip)
+                reply = Reply(type=ReplyType.TEXT, content="💡已开启识图模式(o3)，您接下来第一张图片会进行识别。"+ tip)
                 e_context["reply"] = reply
                 e_context.action = EventAction.BREAK_PASS
 
@@ -225,21 +225,21 @@ class sum4all(Plugin):
                 e_context["reply"] = reply
                 e_context.action = EventAction.BREAK_PASS
 
-            # if content.startswith(self.image_sum_en_trigger) and self.image_sum:
-            #     # Call new function to handle search operation
-            #     pattern = self.image_sum_en_trigger + r"\s(.+)"
-            #     match = re.match(pattern, content)
-            #     tip = f"\n未检测到提示词，将使用系统默认提示词。\n\n💬自定义提示词的格式为：{self.image_sum_en_trigger}+空格+提示词"
-            #     if match:
-            #         self.params_cache[user_id]['image_prompt'] = content[len(self.image_sum_en_trigger):]
-            #         tip = f"\n\n💬使用的提示词为:{self.params_cache[user_id]['image_prompt'] }"
-            #     else:
-            #         self.params_cache[user_id]['image_prompt'] = self.image_prompt
+            if content.startswith(self.image_sum_en_trigger) and self.image_sum:
+                # Call new function to handle search operation
+                pattern = self.image_sum_en_trigger + r"\s(.+)"
+                match = re.match(pattern, content)
+                tip = f"\n未检测到提示词，将使用系统默认提示词。\n\n💬自定义提示词的格式为：{self.image_sum_en_trigger}+空格+提示词"
+                if match:
+                    self.params_cache[user_id]['image_prompt'] = content[len(self.image_sum_en_trigger):]
+                    tip = f"\n\n💬使用的提示词为:{self.params_cache[user_id]['image_prompt'] }"
+                else:
+                    self.params_cache[user_id]['image_prompt'] = self.image_prompt
 
-            #     self.params_cache[user_id]['image_sum_en_quota'] = 1
-            #     reply = Reply(type=ReplyType.TEXT, content="💡已开启单张识图模式(gpt-4v)，您接下来第一张图片会进行识别。"+ tip)
-            #     e_context["reply"] = reply
-            #     e_context.action = EventAction.BREAK_PASS
+                self.params_cache[user_id]['image_sum_en_quota'] = 1
+                reply = Reply(type=ReplyType.TEXT, content="💡已开启单张识图模式(gemini2.5)，您接下来第一张图片会进行识别。"+ tip)
+                e_context["reply"] = reply
+                e_context.action = EventAction.BREAK_PASS
 
             if content.startswith(self.url_sum_trigger) and self.url_sum:
                 # Call new function to handle search operation
@@ -323,7 +323,7 @@ class sum4all(Plugin):
             os.remove(file_path)
             logger.info(f"文件 {file_path} 已删除")
         elif context.type == ContextType.IMAGE:
-            if self.params_cache[user_id]['image_sum_quota'] < 1 and self.params_cache[user_id]['online_image_sum_quota'] < 1:
+            if self.params_cache[user_id]['image_sum_quota'] < 1 and self.params_cache[user_id]['online_image_sum_quota'] < 1 and self.params_cache[user_id]['online_image_sum_quota'] < 1:
                 logger.info("on_handle_context: 当前用户识图配额不够，不进行识别")
                 return
     
@@ -339,7 +339,7 @@ class sum4all(Plugin):
             
             # 检查是否应该进行图片总结
             if self.image_sum:
-                logger.info(f"on_handle_context: 开始识图，识图后中文剩余额度为：{self.params_cache[user_id]['image_sum_quota']}")
+                logger.info(f"on_handle_context: 开始识图，识图后中文剩余额度为：{self.params_cache[user_id]['image_sum_en_quota']}")
                 # logger.info(f"on_handle_context: 开始识图，识图后英文剩余额度为：{self.params_cache[user_id]['image_sum_en_quota']}")
                 # 将图片路径转换为Base64编码的字符串
                 base64_image = self.encode_image_to_base64(image_path)
@@ -368,12 +368,17 @@ class sum4all(Plugin):
                     if self.params_cache[user_id]['image_sum_quota'] > 0:
                         self.handle_openai_image(base64_image, e_context)
 
+                if self.params_cache[user_id]['image_sum_en_quota'] > 0:
+                    self.params_cache[user_id]['image_sum_en_quota'] = 0
+                    self.handle_gemini_image(base64_image, e_context)
+
                 ## 单独处理联网查询图片的逻辑
                 if self.params_cache[user_id]['online_image_sum_quota'] > 0:
                     self.params_cache[user_id]['online_image_sum_quota'] = 0
                     self.online_handle_openai_image(base64_image, e_context)
                         
                 self.params_cache[user_id]['image_sum_quota'] = 0
+
             else:
                 logger.info("图片总结功能已禁用，不对图片内容进行处理")
             # 删除文件
