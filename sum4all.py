@@ -1114,7 +1114,7 @@ class sum4all(Plugin):
             import io
             
             genai.configure(api_key=api_key)
-            model = genai.GenerativeModel("gemini-2.5-pro-exp-03-25")
+            model = genai.GenerativeModel("gemini-2.5-pro-preview-05-06")
             
             # 将base64图片转换为PIL Image对象
             image_data = base64.b64decode(base64_image)
