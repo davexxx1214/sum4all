@@ -24,6 +24,7 @@ from wsgiref.handlers import format_date_time
 
 import _thread as thread
 import datetime
+from datetime import timezone, timedelta
 import hashlib
 import hmac
 import json
@@ -929,6 +930,12 @@ class sum4all(Plugin):
         user_id = msg.from_user_id
         user_params = self.params_cache.get(user_id, {})
         image_prompt = user_params.get('image_prompt', self.image_prompt)
+        
+        # 添加当前东八区时间到prompt末尾
+        shanghai_tz = timezone(timedelta(hours=8))
+        current_time = datetime.datetime.now(shanghai_tz).strftime("%Y-%m-%d %H:%M:%S")
+        image_prompt = f"{image_prompt} (当前时间为:{current_time})"
+        
         logger.info("image prompt :" + image_prompt)
 
         headers = {
