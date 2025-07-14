@@ -933,7 +933,7 @@ class sum4all(Plugin):
         
         # 添加当前东八区时间到prompt末尾
         shanghai_tz = timezone(timedelta(hours=8))
-        current_time = datetime.datetime.now(shanghai_tz).strftime("%Y-%m-%d %H:%M:%S")
+        current_time = datetime.now(shanghai_tz).strftime("%Y-%m-%d %H:%M:%S")
         image_prompt = f"{image_prompt} (当前时间为:{current_time})"
         
         logger.info("image prompt :" + image_prompt)
